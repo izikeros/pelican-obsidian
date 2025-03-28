@@ -1,11 +1,42 @@
 [build-system]
-requires = [
-    "setuptools>=45",
-    "wheel",
-    "setuptools_scm[toml]>=6.0",
-]
+requires = ["setuptools>=42", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "pelican-obsidian"
+description = "Makes pelican markdown files more compatible with Obsidian"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "Jonathan Sundqvist", email = "jonathan@argpar.se"},
+    {name = "Krystian Safjan", email = "ksafjan@gmail.com"}
+]
+keywords = ["pelican", "obsidian", "plugin"]
+classifiers = [
+    "Topic :: Software Development"
+]
+dependencies = [
+    "pelican",
+    "loguru",
+    "markdown"
+]
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "https://github.com/jonathan-s/pelican-obsidian"
+Source = "https://github.com/jonathan-s/pelican-obsidian"
+Tracker = "https://github.com/jonathan-s/pelican-obsidian/issues"
+Funding = "https://github.com/sponsors/jonathan-s"
+
+[tool.setuptools]
+packages = ["pelican.plugins.obsidian"]
+platforms = ["any"]
+include-package-data = true
+zip-safe = true
+
+[tool.setuptools_scm]
+# Configuration for version handling using setuptools_scm
 [tool.black]
 line-length = 88
 target_version = ['py36']
