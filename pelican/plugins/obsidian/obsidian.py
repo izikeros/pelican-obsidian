@@ -8,10 +8,10 @@ from itertools import chain
 from pathlib import Path
 
 from markdown import Markdown
+
 from pelican import signals
 from pelican.readers import MarkdownReader
 from pelican.utils import pelican_open
-
 
 ARTICLE_PATH = {}
 ARTICLE_TITLE = {}
@@ -107,9 +107,7 @@ def file_replacement(match: re.Match) -> str:
     """
     filename, linkname = get_file_and_linkname(match)
     if path := FILE_PATH.get(filename):
-        link_structure = "![{linkname}]({{static}}{path}{filename})".format(
-            linkname=linkname, path=path, filename=filename
-        )
+        link_structure = f"![{linkname}]({{static}}{path}{filename})"
         # logger.debug(f"Link structure: {link_structure} for {filename}")
     else:
         # don't show it at all since it will be broken
@@ -219,10 +217,7 @@ def populate_files_articles_titles(article_generator):
             # i.e. all: Title, TITLE, title should work
             title = re.search(title_re, content)
 
-        if title is None:
-            title = filename
-        else:
-            title = title.group(1).strip()
+        title = filename if title is None else title.group(1).strip()
 
         # logger.debug(f"Found internal link to article: {filename}, title: {title}")
         ARTICLE_TITLE[filename] = title
