@@ -1,90 +1,191 @@
-Obsidian: A Plugin for Pelican
-============================
+# Pelican Obsidian Plugin
 
-<!-- [![Build Status](https://img.shields.io/github/workflow/status/pelican-plugins/series/build)](https://github.com/pelican-plugins/series/actions)
-[![PyPI Version](https://img.shields.io/pypi/v/pelican-series)](https://pypi.org/project/pelican-series/)
-![License](https://img.shields.io/pypi/l/pelican-series?color=blue) -->
+> **Transform your Obsidian notes into beautiful Pelican blog posts with seamless linking and media embedding.**
 
-Obsidian is a pelican plugin that allows you to use the syntax used within Obsidian and when pelican then renders these posts it won't look weird or out of place.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Black](https://img.shields.io/badge/format-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/badge/lint-ruff-4b37ff.svg)](https://github.com/ruff-dev/ruff)
 
-Phrased differently, if you don't like that `#` is included in the name of the tag when you name it `#my-tag` and you think that internal pelican links are difficult to remember and would like to use `[[ my link ]]` as an internal link instead this plugin would be for you.
+Write your blog posts in [Obsidian](https://obsidian.md/) using familiar double-bracket links and hash tags, then publish them effortlessly with [Pelican](https://getpelican.com/). This plugin bridges the gap between your note-taking workflow and your static site generation.
 
-If the article doesn't exist it will return text only. That way, there is a possibility of clearly separating posts that should belong on the blog and linked as such vs posts that should only belong inside Obsidian.
+## Key Features
 
-
-Installation
-------------
-
-This plugin can be installed via:
-
-    # not yet on pypi, but when it is you can install it with.
-    pip install pelican-obsidian
-    
-    # meanwhile you can install using this repo.
-    pip install git+git://github.com/jonathan-s/pelican-obsidian@main#egg=pelican-obsidian
+- **Obsidian-style links**: `[[article-name]]` and `[[article-name | Custom Text]]`
+- **Media embedding**: `![[image.jpg]]` and `![[document.pdf | Alt text]]`
+- **Clean hashtags**: `#my-tag` becomes `my-tag` (no hash symbol in output)
+- **Breadcrumb navigation**: `X::[[parent]]`, `Up::[[category]]`, `Down::[[child]]`
+- **Smart title extraction**: Uses article titles in generated links
+- **Case-insensitive matching**: `[[Article]]` matches `article.md`
+- **Configurable file extensions**: Support for custom file types
+- **Draft handling**: Skip processing for draft articles
 
 
-Add `'obsidian'` to the `PLUGINS` list in your Pelican config:
+## Quick Start
 
-```
-PLUGINS = [
-    'obsidian',
-]
-```
+### Installation
 
-Usage
------
+Install directly from GitHub:
 
-In the tags section you will be able to use `#` without that being reflected in the actual name of the tag. In other words.
-
-```
-Tags: #my-tag
-
-# reflects as
-my-tag in the html output.
+```bash
+pip install git+https://github.com/jonathan-s/pelican-obsidian.git
 ```
 
-Links follow this format:
+### Configuration
 
-```
-[[note name]]
-[[note name | custom link text]]
-```
+Add the plugin to your `pelicanconf.py`:
 
-Files are similar:
+```python
+PLUGINS = ['obsidian']
 
-```
-![[photo.jpg]]
-![[photo.jpg | custom alt text]]
+# Optional: Configure custom file extensions
+OBSIDIAN_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp']
+OBSIDIAN_FILE_EXTENSIONS = ['pdf', 'doc', 'docx', 'txt', 'apkg']
 ```
 
-They explain more about the syntax in the section on [how to embed files](https://help.obsidian.md/How+to/Embed+files)
+## Usage Examples
 
+### Internal Links
 
-Future features
----------------
-- Embed files or sections as described [here](https://help.obsidian.md/How+to/Format+your+notes)
-- Task list?
-- Support .rst?
-- don't generate links for drafts
+Create seamless links between your articles:
 
+```markdown
+---
+title: My Blog Post
+---
 
-Implemented Features
------------------ 
-- Apply the same linking for pages.
+Check out my [[previous-article]] or read about [[python-tips | Python Tips and Tricks]].
+```
 
+**Result:** Links to `previous-article.md` using its title, and `python-tips.md` with custom text.
 
-<!-- Contributing
-------------
+### Media Embedding
 
-Contributions are welcome and much appreciated. Every little bit helps. You can contribute by improving the documentation, adding missing features, and fixing bugs. You can also help out by reviewing and commenting on [existing issues][].
+Embed images and files with ease:
 
-To start contributing to this plugin, review the [Contributing to Pelican][] documentation, beginning with the **Contributing Code** section.
+```markdown
+![[screenshot.png]]
+![[diagram.svg | Architecture Overview]]
+![[presentation.pdf | Download Slides]]
+```
 
-[existing issues]: https://github.com/pelican-plugins/series/issues
-[Contributing to Pelican]: https://docs.getpelican.com/en/latest/contribute.html -->
+**Result:** Images display inline, files become download links with proper alt text.
 
-License
--------
+### Hashtag Tags
 
-This project is licensed under the MIT license.
+Use natural hashtag syntax:
+
+```yaml
+---
+title: Travel Blog
+tags: #travel #photography #europe
+---
+```
+
+**Result:** Creates tags `travel`, `photography`, `europe` (without hash symbols).
+
+### Breadcrumb Navigation
+
+Organize content hierarchy:
+
+```markdown
+---
+title: Advanced Python
+---
+
+X::[[python-basics]]
+Up::[[programming]]
+Down::[[python-frameworks]]
+
+This article builds on [[python-basics]] concepts...
+```
+
+**Result:** Creates navigation links; removes breadcrumbs if targets don't exist.
+
+### Draft Handling
+
+Control what gets published:
+
+```yaml
+---
+title: Work in Progress
+status: draft  # or DRAFT, Draft - case insensitive
+---
+
+This [[internal-link]] won't be processed until published.
+```
+
+**Result:** Obsidian syntax remains unchanged in draft articles.
+
+## Advanced Configuration
+
+### Custom File Extensions
+
+```python
+# Support additional file types
+OBSIDIAN_IMAGE_EXTENSIONS = ['png', 'jpg', 'webp', 'avif', 'heic']
+OBSIDIAN_FILE_EXTENSIONS = ['pdf', 'zip', 'epub', 'pptx', 'xlsx']
+```
+
+### Case-Insensitive Matching
+
+Links automatically match files regardless of case:
+
+- `[[My Article]]` → matches `my-article.md`
+- `[[SETUP-GUIDE]]` → matches `setup-guide.md`
+
+## Troubleshooting
+
+### Links Not Working?
+
+1. **Check file names**: Ensure your markdown files exist in the content directory
+2. **Verify frontmatter**: Articles need proper YAML frontmatter with titles
+3. **Case sensitivity**: The plugin handles case-insensitive matching automatically
+
+### Images Not Displaying?
+
+1. **File location**: Place images in your `STATIC_PATHS` directory
+2. **Supported formats**: Default extensions are `png`, `jpg`, `jpeg`, `svg`, `gif`, `webp`, `avif`
+3. **Custom extensions**: Add them to `OBSIDIAN_IMAGE_EXTENSIONS` setting
+
+### Debug Mode
+
+Enable debug logging to see what the plugin is doing:
+
+```python
+# In pelicanconf.py
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+## How It Works
+
+1. **Article Discovery**: Scans your content directory for markdown files
+2. **Title Extraction**: Reads frontmatter to get article titles
+3. **Link Processing**: Converts `[[article]]` to proper Pelican links
+4. **Media Handling**: Transforms `![[file]]` to static file references
+5. **Breadcrumb Cleanup**: Removes navigation elements for missing targets
+
+## Contributing
+
+Contributions are welcome! This plugin supports:
+
+- Internal article linking with custom text
+- Media file embedding (images, documents)
+- Hashtag tag processing
+- Breadcrumb navigation
+- Draft article handling
+- Case-insensitive file matching
+- Configurable file extensions
+- Comprehensive error handling
+
+### Ideas for Future Enhancements
+
+- Block/section embedding: `![[article#section]]`
+- Task list processing (todo-style checkboxes)
+- reStructuredText support
+- Backlink generation
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
