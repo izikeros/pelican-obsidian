@@ -1,0 +1,193 @@
+/* Obsidian Callouts CSS for Pelican
+ * Add this to your theme's CSS or include it in your templates.
+ */
+
+.callout {
+  padding: 1rem;
+  margin: 1rem 0;
+  border-left: 4px solid;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.callout-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.callout-content {
+  margin: 0;
+}
+
+/* Note - Blue */
+.callout-note {
+  border-color: #448aff;
+  background-color: #e3f2fd;
+}
+.callout-note .callout-title {
+  color: #1565c0;
+}
+
+/* Info - Blue */
+.callout-info {
+  border-color: #2196f3;
+  background-color: #e3f2fd;
+}
+.callout-info .callout-title {
+  color: #1565c0;
+}
+
+/* Tip - Green */
+.callout-tip {
+  border-color: #00c853;
+  background-color: #e8f5e9;
+}
+.callout-tip .callout-title {
+  color: #2e7d32;
+}
+
+/* Success - Green */
+.callout-success {
+  border-color: #4caf50;
+  background-color: #e8f5e9;
+}
+.callout-success .callout-title {
+  color: #2e7d32;
+}
+
+/* Warning - Orange */
+.callout-warning {
+  border-color: #ff9100;
+  background-color: #fff3e0;
+}
+.callout-warning .callout-title {
+  color: #e65100;
+}
+
+/* Caution - Orange */
+.callout-caution {
+  border-color: #ff9100;
+  background-color: #fff3e0;
+}
+.callout-caution .callout-title {
+  color: #e65100;
+}
+
+/* Attention - Orange */
+.callout-attention {
+  border-color: #ff9100;
+  background-color: #fff3e0;
+}
+.callout-attention .callout-title {
+  color: #e65100;
+}
+
+/* Danger - Red */
+.callout-danger {
+  border-color: #ff1744;
+  background-color: #ffebee;
+}
+.callout-danger .callout-title {
+  color: #c62828;
+}
+
+/* Failure - Red */
+.callout-failure {
+  border-color: #f44336;
+  background-color: #ffebee;
+}
+.callout-failure .callout-title {
+  color: #c62828;
+}
+
+/* Bug - Red */
+.callout-bug {
+  border-color: #f44336;
+  background-color: #ffebee;
+}
+.callout-bug .callout-title {
+  color: #c62828;
+}
+
+/* Important - Purple */
+.callout-important {
+  border-color: #7c4dff;
+  background-color: #ede7f6;
+}
+.callout-important .callout-title {
+  color: #512da8;
+}
+
+/* Question - Purple */
+.callout-question {
+  border-color: #7c4dff;
+  background-color: #ede7f6;
+}
+.callout-question .callout-title {
+  color: #512da8;
+}
+
+/* Example - Purple */
+.callout-example {
+  border-color: #7c4dff;
+  background-color: #ede7f6;
+}
+.callout-example .callout-title {
+  color: #512da8;
+}
+
+/* Quote - Gray */
+.callout-quote {
+  border-color: #9e9e9e;
+  background-color: #fafafa;
+}
+.callout-quote .callout-title {
+  color: #616161;
+}
+
+/* Abstract - Cyan */
+.callout-abstract {
+  border-color: #00bcd4;
+  background-color: #e0f7fa;
+}
+.callout-abstract .callout-title {
+  color: #00838f;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .callout {
+    background-color: #1e1e1e;
+  }
+  
+  .callout-note, .callout-info {
+    background-color: #1a237e20;
+  }
+  
+  .callout-tip, .callout-success {
+    background-color: #1b5e2020;
+  }
+  
+  .callout-warning, .callout-caution, .callout-attention {
+    background-color: #e6510020;
+  }
+  
+  .callout-danger, .callout-failure, .callout-bug {
+    background-color: #b7141420;
+  }
+  
+  .callout-important, .callout-question, .callout-example {
+    background-color: #4a148c20;
+  }
+  
+  .callout-quote {
+    background-color: #42424220;
+  }
+  
+  .callout-abstract {
+    background-color: #00696320;
+  }
+}

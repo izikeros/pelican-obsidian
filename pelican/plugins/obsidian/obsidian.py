@@ -40,6 +40,45 @@ x_element_re = re.compile(rf"(?i)X::\s*{link}")
 up_element_re = re.compile(rf"(?i)Up::\s*{link}")
 down_element_re = re.compile(rf"(?i)Down::\s*{link}")
 
+# Regex for inline hashtags (e.g., #agile, #python-dev)
+# Matches hashtags surrounded by whitespace or at start/end of line
+# Does not match hashtags in code blocks or inline code (handled separately)
+inline_hashtag_re = re.compile(r"(?<=\s)#([a-zA-Z][a-zA-Z0-9_/-]*)(?=\s|$|[.,;:!?)])")
+inline_hashtag_start_re = re.compile(
+    r"^#([a-zA-Z][a-zA-Z0-9_/-]*)(?=\s|$|[.,;:!?)])", re.MULTILINE
+)
+
+# Regex for code blocks and inline code (to protect from hashtag removal)
+code_fence_re = re.compile(r"```[\s\S]*?```", re.MULTILINE)
+inline_code_re = re.compile(r"`[^`]+`")
+
+# Regex for Obsidian callouts
+# Matches: > [!type] optional title\n> content lines (stops at empty line or non-> line)
+callout_re = re.compile(
+    r"^(?P<indent>\s*)>\s*\[!(?P<type>\w+)\](?:\s*(?P<title>.+?))?\s*\n"
+    r"(?P<content>(?:>\s?[^\n]*\n?)*)",
+    re.MULTILINE,
+)
+
+# Supported callout types
+CALLOUT_TYPES = [
+    "note",
+    "tip",
+    "warning",
+    "danger",
+    "info",
+    "question",
+    "example",
+    "quote",
+    "abstract",
+    "success",
+    "failure",
+    "bug",
+    "important",
+    "caution",
+    "attention",
+]
+
 """
 # Test cases for links
 [[my link]]
@@ -188,6 +227,118 @@ class ObsidianMarkdownReader(YAMLMetadataReader):
         text = down_element_re.sub(breadcrumb_replacement, text)
         return text
 
+    def remove_inline_hashtags(self, text: str) -> str:
+        """
+        Remove inline hashtags from text while preserving code blocks and inline code.
+
+        Examples:
+            "text #agile text" -> "text  text"
+            "#python at start" -> " at start"
+            "`#preserved`" -> "`#preserved`"
+            "```python\n#comment\n```" -> preserved
+
+        Args:
+            text: The content text
+
+        Returns:
+            str: Text with inline hashtags removed
+        """
+        if not self.settings.get("OBSIDIAN_REMOVE_HASHTAGS", True):
+            return text
+
+        # Store code blocks and inline code with placeholders
+        placeholders: list[tuple[str, str]] = []
+        placeholder_counter = 0
+
+        def store_placeholder(match: re.Match[str]) -> str:
+            nonlocal placeholder_counter
+            placeholder = f"\x00CODEBLOCK{placeholder_counter}\x00"
+            placeholders.append((placeholder, match.group(0)))
+            placeholder_counter += 1
+            return placeholder
+
+        # Protect code fences first (they may contain inline code syntax)
+        text = code_fence_re.sub(store_placeholder, text)
+        # Then protect inline code
+        text = inline_code_re.sub(store_placeholder, text)
+
+        # Remove hashtags - handle both mid-line and start-of-line cases
+        text = inline_hashtag_re.sub("", text)
+        text = inline_hashtag_start_re.sub("", text)
+
+        # Restore code blocks and inline code
+        for placeholder, original in placeholders:
+            text = text.replace(placeholder, original)
+
+        return text
+
+    def convert_callouts(self, text: str) -> str:
+        """
+        Convert Obsidian callouts to HTML div blocks.
+
+        Example input:
+            > [!note] My Title
+            > Some content here
+            > More content
+
+        Example output:
+            <div class="callout callout-note">
+            <div class="callout-title">My Title</div>
+            <div class="callout-content">
+            Some content here
+            More content
+            </div>
+            </div>
+
+        Args:
+            text: The content text
+
+        Returns:
+            str: Text with callouts converted to HTML
+        """
+        if not self.settings.get("OBSIDIAN_CALLOUTS_ENABLED", True):
+            return text
+
+        def callout_replacement(match: re.Match[str]) -> str:
+            callout_type = match.group("type").lower()
+            title = match.group("title")
+            content = match.group("content")
+
+            # If not a recognized callout type, return unchanged
+            if callout_type not in CALLOUT_TYPES:
+                return match.group(0)
+
+            # Use provided title or capitalize the type
+            display_title = title.strip() if title else callout_type.capitalize()
+
+            # Process content - remove leading "> " from each line
+            content_lines = []
+            for line in content.split("\n"):
+                # Remove the leading > and optional space
+                stripped = re.sub(r"^\s*>\s?", "", line)
+                content_lines.append(stripped)
+
+            # Remove trailing empty lines
+            while content_lines and not content_lines[-1].strip():
+                content_lines.pop()
+
+            processed_content = "\n".join(content_lines)
+
+            # Build HTML output
+            html = (
+                f'<div class="callout callout-{callout_type}">\n'
+                f'<div class="callout-title">{display_title}</div>\n'
+                f'<div class="callout-content">\n'
+                f"{processed_content}\n"
+                f"</div>\n"
+                f"</div>\n"
+            )
+
+            __log__.debug(f"Converted callout type '{callout_type}' with title '{display_title}'")
+            return html
+
+        return callout_re.sub(callout_replacement, text)
+
     def _load_yaml_metadata(self, text, source_path):
         """
         Load YAML metadata and process tags.
@@ -242,6 +393,8 @@ class ObsidianMarkdownReader(YAMLMetadataReader):
 
         # Process content for published articles
         text = m.group("content")
+        text = self.remove_inline_hashtags(text)
+        text = self.convert_callouts(text)
         text = self.remove_non_existing_breadcrumbs(text)
         content = self.replace_obsidian_links(text)
 

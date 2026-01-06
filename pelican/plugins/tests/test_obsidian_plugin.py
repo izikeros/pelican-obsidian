@@ -271,3 +271,126 @@ def test_logging_statistics(caplog):
     assert any(
         "Obsidian plugin indexed:" in record.message for record in caplog.records
     )
+
+
+# Tests for inline hashtag removal
+
+
+@pytest.mark.parametrize("path", ["inline_hashtags_test"])
+def test_inline_hashtags_removed(obsidian):
+    """Test that inline hashtags are removed from content"""
+    content, _ = obsidian
+
+    # Hashtags should be removed
+    assert "#agile" not in content
+    assert "#python" not in content
+    assert "#startup" not in content
+    assert "#devops" not in content
+    assert "#tag1" not in content
+    assert "#tag2" not in content
+    assert "#tag3" not in content
+    assert "#single-tag-line" not in content
+
+    # Text around hashtags should remain
+    assert "This is text with" in content
+    assert "tags" in content
+    assert "at start of line" in content
+    assert "End of line" in content
+    assert "Multiple" in content
+    assert "on same line" in content
+
+
+@pytest.mark.parametrize("path", ["inline_hashtags_test"])
+def test_hashtags_preserved_in_code(obsidian):
+    """Test that hashtags in code blocks and inline code are preserved"""
+    content, _ = obsidian
+
+    # Hashtags in inline code should be preserved
+    assert "#code-inline" in content
+
+    # Hashtags in code fences should be preserved
+    assert "# This is a comment with #hashtag" in content
+
+
+@pytest.mark.parametrize("path", ["inline_hashtags_test"])
+def test_url_anchors_preserved(obsidian):
+    """Test that URL anchors are not affected"""
+    content, _ = obsidian
+
+    # URL with anchor should remain intact
+    assert "http://example.com/#section" in content
+
+
+def test_hashtag_removal_can_be_disabled():
+    """Test that hashtag removal can be disabled via settings"""
+    from pelican.tests.support import get_settings
+
+    settings = get_settings()
+    settings["DEFAULT_CATEGORY"] = "Default"
+    settings["DEFAULT_DATE"] = (1970, 1, 1)
+    settings["CACHE_CONTENT"] = False
+    settings["OBSIDIAN_REMOVE_HASHTAGS"] = False
+
+    omr = ObsidianMarkdownReader(settings=settings)
+
+    text = "This has #hashtag in it."
+    result = omr.remove_inline_hashtags(text)
+
+    # Hashtag should remain when disabled
+    assert "#hashtag" in result
+
+
+# Tests for callouts conversion
+
+
+@pytest.mark.parametrize("path", ["callouts_test"])
+def test_callouts_converted(obsidian):
+    """Test that Obsidian callouts are converted to HTML"""
+    content, _ = obsidian
+
+    # Check for callout divs
+    assert 'class="callout callout-note"' in content
+    assert 'class="callout callout-warning"' in content
+    assert 'class="callout callout-tip"' in content
+    assert 'class="callout callout-danger"' in content
+    assert 'class="callout callout-info"' in content
+
+    # Check for callout titles
+    assert 'class="callout-title"' in content
+    assert "Important Note" in content
+    assert "Pro Tip" in content
+    assert "Critical Warning" in content
+
+    # Check for callout content
+    assert 'class="callout-content"' in content
+    assert "This is a note callout" in content
+    assert "This warning has no custom title" in content
+
+
+@pytest.mark.parametrize("path", ["callouts_test"])
+def test_callouts_default_title(obsidian):
+    """Test that callouts without title get default capitalized type"""
+    content, _ = obsidian
+
+    # Warning callout should have "Warning" as title (capitalized type)
+    assert "Warning" in content
+
+
+def test_callouts_can_be_disabled():
+    """Test that callout conversion can be disabled via settings"""
+    from pelican.tests.support import get_settings
+
+    settings = get_settings()
+    settings["DEFAULT_CATEGORY"] = "Default"
+    settings["DEFAULT_DATE"] = (1970, 1, 1)
+    settings["CACHE_CONTENT"] = False
+    settings["OBSIDIAN_CALLOUTS_ENABLED"] = False
+
+    omr = ObsidianMarkdownReader(settings=settings)
+
+    text = "> [!note] Test\n> Content here\n"
+    result = omr.convert_callouts(text)
+
+    # Callout should remain unchanged when disabled
+    assert "[!note]" in result
+    assert "callout" not in result
