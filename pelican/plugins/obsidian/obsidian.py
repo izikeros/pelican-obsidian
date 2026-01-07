@@ -79,6 +79,27 @@ CALLOUT_TYPES = [
     "attention",
 ]
 
+# Map Obsidian callout types to standard admonition types
+# These match the CSS classes in Pelican themes (Flex, etc.)
+CALLOUT_TO_ADMONITION = {
+    "note": "note",
+    "info": "note",
+    "tip": "tip",
+    "success": "tip",
+    "warning": "warning",
+    "caution": "warning",
+    "attention": "attention",
+    "danger": "danger",
+    "failure": "danger",
+    "bug": "danger",
+    "error": "danger",
+    "important": "important",
+    "question": "hint",
+    "example": "note",
+    "abstract": "note",
+    "quote": "note",
+}
+
 """
 # Test cases for links
 [[my link]]
@@ -252,7 +273,8 @@ class ObsidianMarkdownReader(YAMLMetadataReader):
 
         def store_placeholder(match: re.Match[str]) -> str:
             nonlocal placeholder_counter
-            placeholder = f"\x00CODEBLOCK{placeholder_counter}\x00"
+            # Use unlikely string pattern instead of control characters (XML-safe)
+            placeholder = f"__OBSIDIAN_CODEBLOCK_{placeholder_counter}__"
             placeholders.append((placeholder, match.group(0)))
             placeholder_counter += 1
             return placeholder
@@ -281,7 +303,14 @@ class ObsidianMarkdownReader(YAMLMetadataReader):
             > Some content here
             > More content
 
-        Example output:
+        Example output (admonition format - default):
+            <div class="admonition note">
+            <p class="admonition-title">My Title</p>
+            <p>Some content here
+            More content</p>
+            </div>
+
+        Example output (callout format - legacy):
             <div class="callout callout-note">
             <div class="callout-title">My Title</div>
             <div class="callout-content">
@@ -298,6 +327,8 @@ class ObsidianMarkdownReader(YAMLMetadataReader):
         """
         if not self.settings.get("OBSIDIAN_CALLOUTS_ENABLED", True):
             return text
+
+        use_admonition = self.settings.get("OBSIDIAN_CALLOUTS_USE_ADMONITION", True)
 
         def callout_replacement(match: re.Match[str]) -> str:
             callout_type = match.group("type").lower()
@@ -324,15 +355,25 @@ class ObsidianMarkdownReader(YAMLMetadataReader):
 
             processed_content = "\n".join(content_lines)
 
-            # Build HTML output
-            html = (
-                f'<div class="callout callout-{callout_type}">\n'
-                f'<div class="callout-title">{display_title}</div>\n'
-                f'<div class="callout-content">\n'
-                f"{processed_content}\n"
-                f"</div>\n"
-                f"</div>\n"
-            )
+            if use_admonition:
+                # Map to standard admonition type for theme compatibility
+                admonition_type = CALLOUT_TO_ADMONITION.get(callout_type, "note")
+                html = (
+                    f'<div class="admonition {admonition_type}">\n'
+                    f'<p class="admonition-title">{display_title}</p>\n'
+                    f"<p>{processed_content}</p>\n"
+                    f"</div>\n"
+                )
+            else:
+                # Legacy callout format (requires custom CSS)
+                html = (
+                    f'<div class="callout callout-{callout_type}">\n'
+                    f'<div class="callout-title">{display_title}</div>\n'
+                    f'<div class="callout-content">\n'
+                    f"{processed_content}\n"
+                    f"</div>\n"
+                    f"</div>\n"
+                )
 
             __log__.debug(f"Converted callout type '{callout_type}' with title '{display_title}'")
             return html
