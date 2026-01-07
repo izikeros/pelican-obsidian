@@ -55,8 +55,9 @@ inline_code_re = re.compile(r"`[^`]+`")
 
 # Regex for Obsidian callouts
 # Matches: > [!type] optional title\n> content lines (stops at empty line or non-> line)
+# Uses [ \t]* instead of \s* to avoid matching across newlines for the title
 callout_re = re.compile(
-    r"^(?P<indent>\s*)>\s*\[!(?P<type>\w+)\](?:\s*(?P<title>.+?))?\s*\n"
+    r"^(?P<indent>\s*)>\s*\[!(?P<type>\w+)\](?:[ \t]*(?P<title>.+?))?[ \t]*\n"
     r"(?P<content>(?:>\s?[^\n]*\n?)*)",
     re.MULTILINE,
 )
