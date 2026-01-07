@@ -5,19 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-01-06
+## [1.0.0] - 2026-01-07
 
 ### Added
 - **Inline hashtag removal**: Automatically removes bare hashtags (e.g., `#agile`, `#python`) from article content while preserving hashtags in code blocks, inline code, and URL anchors
-- **Obsidian callouts conversion**: Converts Obsidian callout syntax (`> [!note]`, `> [!warning]`, etc.) to styled HTML div blocks
+- **Obsidian callouts conversion**: Converts Obsidian callout syntax (`> [!note]`, `> [!warning]`, etc.) to standard Pelican admonition HTML format
+- **Admonition format support**: Callouts convert to `div.admonition` format by default, compatible with existing Pelican themes (Flex, etc.)
 - New configuration options:
   - `OBSIDIAN_REMOVE_HASHTAGS` (default: `True`) - Enable/disable inline hashtag removal
   - `OBSIDIAN_CALLOUTS_ENABLED` (default: `True`) - Enable/disable callout conversion
-- Sample CSS file (`obsidian-callouts.css`) for styling callouts in your theme
+  - `OBSIDIAN_CALLOUTS_USE_ADMONITION` (default: `True`) - Use standard admonition format vs custom callout divs
+- Sample CSS file (`obsidian-callouts.css`) for custom callout styling (when not using admonition format)
 - Comprehensive tests for new features
 
 ### Supported Callout Types
 note, tip, warning, danger, info, question, example, quote, abstract, success, failure, bug, important, caution, attention
+
+Callout types are mapped to admonition classes: tip→tip, warning/caution/attention→warning, danger/failure/bug→danger, etc.
 
 ## [0.3.0] - 2025-01-03
 
