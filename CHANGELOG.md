@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sample CSS file (`obsidian-callouts.css`) for custom callout styling (when not using admonition format)
 - Comprehensive tests for new features
 
+### Fixed
+- Callout title regex no longer captures content from the next line
+
 ### Supported Callout Types
 note, tip, warning, danger, info, question, example, quote, abstract, success, failure, bug, important, caution, attention
 
