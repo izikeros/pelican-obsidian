@@ -40,12 +40,13 @@ x_element_re = re.compile(rf"(?i)X::\s*{link}")
 up_element_re = re.compile(rf"(?i)Up::\s*{link}")
 down_element_re = re.compile(rf"(?i)Down::\s*{link}")
 
-# Regex for inline hashtags (e.g., #agile, #python-dev)
+# Regex for inline hashtags (e.g., #agile, #python-dev, #37-signals)
 # Matches hashtags surrounded by whitespace or at start/end of line
 # Does not match hashtags in code blocks or inline code (handled separately)
-inline_hashtag_re = re.compile(r"(?<=\s)#([a-zA-Z][a-zA-Z0-9_/-]*)(?=\s|$|[.,;:!?)])")
+# Allows first character to be letter or digit (e.g., #37signals)
+inline_hashtag_re = re.compile(r"(?<=\s)#([a-zA-Z0-9][a-zA-Z0-9_/-]*)(?=\s|$|[.,;:!?)])")
 inline_hashtag_start_re = re.compile(
-    r"^#([a-zA-Z][a-zA-Z0-9_/-]*)(?=\s|$|[.,;:!?)])", re.MULTILINE
+    r"^#([a-zA-Z0-9][a-zA-Z0-9_/-]*)(?=\s|$|[.,;:!?)])", re.MULTILINE
 )
 
 # Regex for code blocks and inline code (to protect from hashtag removal)
