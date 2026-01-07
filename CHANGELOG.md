@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-01-07
 
 ### Added
-- **Inline hashtag removal**: Automatically removes bare hashtags (e.g., `#agile`, `#python`) from article content while preserving hashtags in code blocks, inline code, and URL anchors
+- **Inline hashtag removal**: Automatically removes bare hashtags (e.g., `#agile`, `#python`, `#37-signals`) from article content while preserving hashtags in code blocks, inline code, and URL anchors
 - **Obsidian callouts conversion**: Converts Obsidian callout syntax (`> [!note]`, `> [!warning]`, etc.) to standard Pelican admonition HTML format
 - **Admonition format support**: Callouts convert to `div.admonition` format by default, compatible with existing Pelican themes (Flex, etc.)
 - New configuration options:
