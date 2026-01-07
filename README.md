@@ -1,191 +1,338 @@
-# Pelican Obsidian Plugin
-
-> **Transform your Obsidian notes into beautiful Pelican blog posts with seamless linking and media embedding.**
+# Pelican Obsidian
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Black](https://img.shields.io/badge/format-black-000000.svg)](https://github.com/psf/black)
-[![Ruff](https://img.shields.io/badge/lint-ruff-4b37ff.svg)](https://github.com/ruff-dev/ruff)
 
-Write your blog posts in [Obsidian](https://obsidian.md/) using familiar double-bracket links and hash tags, then publish them effortlessly with [Pelican](https://getpelican.com/). This plugin bridges the gap between your note-taking workflow and your static site generation.
+A [Pelican](https://getpelican.com/) plugin that transforms [Obsidian](https://obsidian.md/) markdown syntax into Pelican-compatible HTML. Write your blog posts in Obsidian using familiar wiki-links and callouts, then publish them seamlessly with Pelican.
 
-## Key Features
+## Features
 
-- **Obsidian-style links**: `[[article-name]]` and `[[article-name | Custom Text]]`
-- **Media embedding**: `![[image.jpg]]` and `![[document.pdf | Alt text]]`
-- **Clean hashtags**: `#my-tag` becomes `my-tag` (no hash symbol in output)
-- **Breadcrumb navigation**: `X::[[parent]]`, `Up::[[category]]`, `Down::[[child]]`
-- **Smart title extraction**: Uses article titles in generated links
-- **Case-insensitive matching**: `[[Article]]` matches `article.md`
-- **Configurable file extensions**: Support for custom file types
-- **Draft handling**: Skip processing for draft articles
+| Feature | Obsidian Syntax | Description |
+|---------|-----------------|-------------|
+| Wiki Links | `[[article-name]]` | Links to other articles |
+| Custom Link Text | `[[article\|Display Text]]` | Links with custom display text |
+| Image Embedding | `![[image.png]]` | Embeds images |
+| File Embedding | `![[document.pdf]]` | Links to static files |
+| Callouts | `> [!note]` | Converts to styled admonitions |
+| Inline Hashtags | `#tag-name` | Removes bare hashtags from content |
+| Breadcrumbs | `Up::[[parent]]` | Navigation elements |
+| Tag Cleanup | `tags: #python` | Strips `#` from frontmatter tags |
 
-
-## Quick Start
-
-### Installation
-
-Install directly from GitHub:
+## Installation
 
 ```bash
 pip install git+https://github.com/jonathan-s/pelican-obsidian.git
 ```
 
-### Configuration
+**Requirements:** Python 3.9+, Pelican, pelican-yaml-metadata
 
-Add the plugin to your `pelicanconf.py`:
+## Quick Start
+
+Add to your `pelicanconf.py`:
 
 ```python
 PLUGINS = ['obsidian']
-
-# Optional: Configure custom file extensions
-OBSIDIAN_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp']
-OBSIDIAN_FILE_EXTENSIONS = ['pdf', 'doc', 'docx', 'txt', 'apkg']
 ```
 
-## Usage Examples
+That's it! The plugin works with sensible defaults.
 
-### Internal Links
+---
 
-Create seamless links between your articles:
+## Transformation Guide
 
+### Wiki Links
+
+Convert Obsidian `[[wiki-links]]` to standard markdown links with Pelican's `{filename}` directive.
+
+**Obsidian Markdown:**
 ```markdown
----
-title: My Blog Post
----
-
-Check out my [[previous-article]] or read about [[python-tips | Python Tips and Tricks]].
+Check out my [[getting-started]] guide.
+Read about [[python-tips|Python Tips and Tricks]].
 ```
 
-**Result:** Links to `previous-article.md` using its title, and `python-tips.md` with custom text.
+**Generated HTML:**
+```html
+<p>Check out my <a href="/getting-started.html">Getting Started with Pelican</a> guide.</p>
+<p>Read about <a href="/python-tips.html">Python Tips and Tricks</a>.</p>
+```
 
-### Media Embedding
+**Behavior:**
+- Links use the target article's title (from frontmatter) as link text
+- Custom text after `|` overrides the title
+- Non-existent targets become plain text (no broken links)
+- Case-insensitive matching: `[[My Article]]` finds `my-article.md`
 
-Embed images and files with ease:
+---
 
+### Image and File Embedding
+
+Embed images and link to files using Obsidian's `![[filename]]` syntax.
+
+**Obsidian Markdown:**
 ```markdown
+Here's a screenshot:
 ![[screenshot.png]]
-![[diagram.svg | Architecture Overview]]
-![[presentation.pdf | Download Slides]]
+
+Download the presentation:
+![[slides.pdf|Download Slides]]
 ```
 
-**Result:** Images display inline, files become download links with proper alt text.
+**Generated HTML:**
+```html
+<p>Here's a screenshot:</p>
+<p><img alt="screenshot.png" src="/images/screenshot.png"></p>
 
-### Hashtag Tags
-
-Use natural hashtag syntax:
-
-```yaml
----
-title: Travel Blog
-tags: #travel #photography #europe
----
+<p>Download the presentation:</p>
+<p><img alt="Download Slides" src="/files/slides.pdf"></p>
 ```
 
-**Result:** Creates tags `travel`, `photography`, `europe` (without hash symbols).
+**Supported Extensions:**
+- **Images:** png, jpg, jpeg, svg, gif, webp, avif
+- **Files:** apkg, pdf, doc, docx, txt
+
+---
+
+### Callouts / Admonitions
+
+Convert Obsidian callout blocks to HTML admonitions compatible with Pelican themes.
+
+**Obsidian Markdown:**
+```markdown
+> [!note] Important Information
+> This is a note callout.
+> It can span multiple lines.
+
+> [!warning]
+> Be careful with this operation!
+
+> [!tip] Pro Tip
+> Use keyboard shortcuts to save time.
+```
+
+**Generated HTML (default admonition format):**
+```html
+<div class="admonition note">
+<p class="admonition-title">Important Information</p>
+<p>This is a note callout.
+It can span multiple lines.</p>
+</div>
+
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Be careful with this operation!</p>
+</div>
+
+<div class="admonition tip">
+<p class="admonition-title">Pro Tip</p>
+<p>Use keyboard shortcuts to save time.</p>
+</div>
+```
+
+**Supported Callout Types:**
+
+| Obsidian Type | Admonition Class | Visual Style |
+|---------------|------------------|--------------|
+| `note`, `info` | `note` | Blue |
+| `tip`, `success` | `tip` | Green |
+| `warning`, `caution`, `attention` | `warning` | Orange |
+| `danger`, `failure`, `bug`, `error` | `danger` | Red |
+| `important` | `important` | Purple |
+| `question` | `hint` | Cyan |
+| `example`, `abstract`, `quote` | `note` | Blue |
+
+---
+
+### Inline Hashtag Removal
+
+Removes bare hashtags from article content while preserving code.
+
+**Obsidian Markdown:**
+```markdown
+This article covers #python and #web-development topics.
+
+Here's some code: `#this-stays`
+
+```python
+# This comment stays too
+print("Hello")
+```
+```
+
+**Generated HTML:**
+```html
+<p>This article covers  and  topics.</p>
+
+<p>Here's some code: <code>#this-stays</code></p>
+
+<pre><code class="python"># This comment stays too
+print("Hello")
+</code></pre>
+```
+
+**Preserved contexts:**
+- Inside backticks (inline code)
+- Inside code fences
+- URL anchors (`http://example.com/#section`)
+
+---
 
 ### Breadcrumb Navigation
 
-Organize content hierarchy:
+Handle Obsidian breadcrumb-style navigation elements.
 
+**Obsidian Markdown:**
 ```markdown
----
-title: Advanced Python
----
+Up::[[parent-category]]
+X::[[related-article]]
+Down::[[subtopic]]
 
-X::[[python-basics]]
-Up::[[programming]]
-Down::[[python-frameworks]]
-
-This article builds on [[python-basics]] concepts...
+The main content starts here...
 ```
 
-**Result:** Creates navigation links; removes breadcrumbs if targets don't exist.
+**Generated HTML:**
+```html
+<p><a href="/parent-category.html">Parent Category</a></p>
+<p><a href="/related-article.html">Related Article</a></p>
+<p><a href="/subtopic.html">Subtopic Guide</a></p>
+
+<p>The main content starts here...</p>
+```
+
+**Behavior:**
+- Prefixes (`Up::`, `X::`, `Down::`) are removed
+- If target article doesn't exist, entire breadcrumb line is removed
+- Case-insensitive prefix matching
+
+---
+
+### Tag Processing
+
+Cleans up Obsidian-style hashtag tags in frontmatter.
+
+**Obsidian Markdown:**
+```yaml
+---
+title: My Article
+tags: #python, #web-dev, #tutorial
+---
+```
+
+**Result:** Tags become `python`, `web-dev`, `tutorial` (without `#`)
+
+Also supports YAML list format:
+```yaml
+tags:
+  - python
+  - web-dev
+```
+
+---
 
 ### Draft Handling
 
-Control what gets published:
+Articles with `status: draft` skip all Obsidian processing.
 
+**Obsidian Markdown:**
 ```yaml
 ---
 title: Work in Progress
-status: draft  # or DRAFT, Draft - case insensitive
+status: draft
 ---
 
-This [[internal-link]] won't be processed until published.
+This [[wiki-link]] stays as-is until published.
 ```
 
-**Result:** Obsidian syntax remains unchanged in draft articles.
+**Generated HTML:**
+```html
+<p>This [[wiki-link]] stays as-is until published.</p>
+```
 
-## Advanced Configuration
+This lets you preview drafts in their raw Obsidian format.
 
-### Custom File Extensions
+---
+
+## Configuration
+
+All settings are optional. Add to `pelicanconf.py`:
 
 ```python
-# Support additional file types
-OBSIDIAN_IMAGE_EXTENSIONS = ['png', 'jpg', 'webp', 'avif', 'heic']
-OBSIDIAN_FILE_EXTENSIONS = ['pdf', 'zip', 'epub', 'pptx', 'xlsx']
+# Plugin activation
+PLUGINS = ['obsidian']
+
+# Hashtag removal (default: True)
+OBSIDIAN_REMOVE_HASHTAGS = True
+
+# Callout conversion (default: True)
+OBSIDIAN_CALLOUTS_ENABLED = True
+
+# Use standard admonition format (default: True)
+# Set to False for custom callout CSS classes
+OBSIDIAN_CALLOUTS_USE_ADMONITION = True
+
+# Custom image extensions (default shown)
+OBSIDIAN_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'avif']
+
+# Custom file extensions (default shown)
+OBSIDIAN_FILE_EXTENSIONS = ['apkg', 'pdf', 'doc', 'docx', 'txt']
 ```
 
-### Case-Insensitive Matching
+### Callout Styling
 
-Links automatically match files regardless of case:
+**With `OBSIDIAN_CALLOUTS_USE_ADMONITION = True` (default):**
 
-- `[[My Article]]` → matches `my-article.md`
-- `[[SETUP-GUIDE]]` → matches `setup-guide.md`
+Works automatically with Pelican themes that support admonitions (Flex, Elegant, etc.). The generated HTML uses standard `div.admonition` classes.
+
+**With `OBSIDIAN_CALLOUTS_USE_ADMONITION = False`:**
+
+Generates `div.callout.callout-{type}` classes. Include the provided `obsidian-callouts.css` in your theme:
+
+```html
+<link rel="stylesheet" href="{{ SITEURL }}/theme/css/obsidian-callouts.css">
+```
+
+---
 
 ## Troubleshooting
 
-### Links Not Working?
+### Links Not Converting?
 
-1. **Check file names**: Ensure your markdown files exist in the content directory
-2. **Verify frontmatter**: Articles need proper YAML frontmatter with titles
-3. **Case sensitivity**: The plugin handles case-insensitive matching automatically
+1. **File must exist** - Target `.md` file must be in your content directory
+2. **Check filename** - Link text must match filename (without `.md`)
+3. **Frontmatter required** - Articles need YAML frontmatter for title extraction
 
-### Images Not Displaying?
+### Images Not Showing?
 
-1. **File location**: Place images in your `STATIC_PATHS` directory
-2. **Supported formats**: Default extensions are `png`, `jpg`, `jpeg`, `svg`, `gif`, `webp`, `avif`
-3. **Custom extensions**: Add them to `OBSIDIAN_IMAGE_EXTENSIONS` setting
+1. **Check STATIC_PATHS** - Image directory must be in Pelican's static paths
+2. **Verify extension** - Must be in `OBSIDIAN_IMAGE_EXTENSIONS` list
+3. **Case sensitivity** - Filename case must match (or use exact case)
 
-### Debug Mode
-
-Enable debug logging to see what the plugin is doing:
+### Enable Debug Logging
 
 ```python
-# In pelicanconf.py
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('pelican.plugins.obsidian').setLevel(logging.DEBUG)
 ```
+
+---
 
 ## How It Works
 
-1. **Article Discovery**: Scans your content directory for markdown files
-2. **Title Extraction**: Reads frontmatter to get article titles
-3. **Link Processing**: Converts `[[article]]` to proper Pelican links
-4. **Media Handling**: Transforms `![[file]]` to static file references
-5. **Breadcrumb Cleanup**: Removes navigation elements for missing targets
+1. **Initialization** - Scans content directory, builds article/file index
+2. **Title Extraction** - Reads YAML frontmatter to get article titles  
+3. **Content Processing** (in order):
+   - Remove inline hashtags
+   - Convert callouts to HTML
+   - Process breadcrumb elements
+   - Replace wiki-links with Pelican links
+4. **Tag Cleanup** - Strips `#` from frontmatter tags
 
-## Contributing
+---
 
-Contributions are welcome! This plugin supports:
+## License
 
-- Internal article linking with custom text
-- Media file embedding (images, documents)
-- Hashtag tag processing
-- Breadcrumb navigation
-- Draft article handling
-- Case-insensitive file matching
-- Configurable file extensions
-- Comprehensive error handling
+[MIT License](LICENSE)
 
-### Ideas for Future Enhancements
+## Credits
 
-- Block/section embedding: `![[article#section]]`
-- Task list processing (todo-style checkboxes)
-- reStructuredText support
-- Backlink generation
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
+- Original author: [Jonathan Sundqvist](https://github.com/jonathan-s)
+- Contributors: [Krystian Safjan](https://github.com/izikeros)
